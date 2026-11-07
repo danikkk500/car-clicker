@@ -21,7 +21,8 @@
   // th — сколько ₽ нужно заработать за всё время, чтобы получить машину
   // mult — множитель к доходу за тап и в секунду
   const CARS = [
-    { name: 'ВАЗ-2107',        sub: 'Классика. С неё всё начиналось',   th: 0,           mult: 1,   shape: 'classic', color: '#c8b99a', accent: null },
+    // photo — необязательное фото машины (папка images/). Если файла нет, рисуется запасная машина.
+    { name: 'ВАЗ-2107',        sub: 'Классика. С неё всё начиналось',   th: 0,           mult: 1,   shape: 'classic', color: '#2236c9', accent: null, glass: '#141a26', bumper: '#14161b', wheels: 'steel', photo: 'images/vaz2107.webp' },
     { name: 'ВАЗ-2110',        sub: 'Та самая «десятка»',               th: 3e3,         mult: 2,   shape: 'sedan',   color: '#8ea0b3', accent: '#5c6b7a' },
     { name: 'Lada Priora',     sub: 'Тот же двигатель, новый уровень',  th: 2e4,         mult: 4,   shape: 'sedan',   color: '#b8bcc4', accent: '#3a86ff' },
     { name: 'Lada Vesta',      sub: 'Современно и по-русски',           th: 1.2e5,       mult: 7,   shape: 'sedan',   color: '#2a9d8f', accent: '#e9c46a' },
@@ -140,20 +141,39 @@
   }
 
   function carSVG(c) {
-    const wheel = (x, y, r) =>
-      `<circle cx="${x}" cy="${y}" r="${r + 7}" fill="#0d0f13"/>` +
-      `<circle cx="${x}" cy="${y}" r="${r}" fill="#15171c"/>` +
-      `<g class="cc-spin"><circle cx="${x}" cy="${y}" r="${r * 0.56}" fill="#cfd3da"/>` +
-      `<path d="M${x} ${y - r * 0.56} V${y + r * 0.56} M${x - r * 0.56} ${y} H${x + r * 0.56}" stroke="#7b8190" stroke-width="3"/></g>` +
-      `<circle cx="${x}" cy="${y}" r="${r * 0.14}" fill="#3a3f4d"/>`;
-    const glass = '#a9d6f5';
+    const steel = c.wheels === 'steel';   // простые стальные диски с отверстиями
+    const wheel = (x, y, r) => {
+      const tire = `<circle cx="${x}" cy="${y}" r="${r + 7}" fill="#0d0f13"/><circle cx="${x}" cy="${y}" r="${r}" fill="#15171c"/>`;
+      if (steel) {
+        let holes = '';
+        for (let k = 0; k < 5; k++) {
+          const a = (k * 72 - 90) * Math.PI / 180;
+          holes += `<circle cx="${(x + r * 0.4 * Math.cos(a)).toFixed(1)}" cy="${(y + r * 0.4 * Math.sin(a)).toFixed(1)}" r="${(r * 0.075).toFixed(1)}" fill="#4f5561"/>`;
+        }
+        return tire + `<g class="cc-spin"><circle cx="${x}" cy="${y}" r="${r * 0.64}" fill="#b4bac3"/>${holes}<circle cx="${x}" cy="${y}" r="${r * 0.17}" fill="#868c97"/></g>`;
+      }
+      return tire +
+        `<g class="cc-spin"><circle cx="${x}" cy="${y}" r="${r * 0.56}" fill="#cfd3da"/>` +
+        `<path d="M${x} ${y - r * 0.56} V${y + r * 0.56} M${x - r * 0.56} ${y} H${x + r * 0.56}" stroke="#7b8190" stroke-width="3"/></g>` +
+        `<circle cx="${x}" cy="${y}" r="${r * 0.14}" fill="#3a3f4d"/>`;
+    };
+    const glass = c.glass || '#a9d6f5';
     let body = '', extra = '', wheels = '', stripeY = null;
     let hl = [0, 0], tl = [0, 0];
 
     if (c.shape === 'classic') {
       body = '<path d="M28 146 L28 110 Q28 100 40 98 L100 94 L128 56 L262 56 L292 94 L356 100 Q374 104 374 118 L374 146 Z"/>';
-      extra = `<path d="M138 64 L194 64 L194 92 L114 92 Z" fill="${glass}"/><path d="M202 64 L256 64 L280 92 L202 92 Z" fill="${glass}"/>` +
-              '<rect x="24" y="136" width="354" height="10" rx="5" fill="#7a7f8c"/>';
+      const bump = c.bumper || '#7a7f8c';
+      const line = '<path d="M36 114 H350" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-linecap="round"/>';
+      const shine = '<path d="M152 64 L166 64 L144 92 L130 92 Z M218 64 L232 64 L220 92 L206 92 Z" fill="rgba(255,255,255,.1)"/>';
+      const seams = '<path d="M126 94 V138 M198 92 V138 M282 94 V138" stroke="rgba(0,0,0,.28)" stroke-width="2" fill="none"/>';
+      const handles = '<rect x="164" y="102" width="18" height="4" rx="2" fill="rgba(0,0,0,.45)"/><rect x="214" y="102" width="18" height="4" rx="2" fill="rgba(0,0,0,.45)"/>';
+      const mirror = '<rect x="266" y="86" width="16" height="9" rx="4" fill="rgba(0,0,0,.55)"/>';
+      extra = line + `<path d="M138 64 L194 64 L194 92 L114 92 Z" fill="${glass}"/><path d="M202 64 L256 64 L280 92 L202 92 Z" fill="${glass}"/>` +
+              shine + seams + handles + mirror +
+              '<rect x="50" y="138" width="300" height="6" rx="3" fill="rgba(0,0,0,.25)"/>' +
+              `<rect x="22" y="122" width="28" height="24" rx="7" fill="${bump}"/><rect x="350" y="124" width="30" height="22" rx="7" fill="${bump}"/>` +
+              '<rect x="360" y="119" width="10" height="5" rx="2" fill="#ff9f1c"/>';
       wheels = wheel(106, 146, 30) + wheel(296, 146, 30);
       hl = [360, 106]; tl = [28, 106];
     } else if (c.shape === 'suv') {
@@ -205,7 +225,25 @@
     const c = car();
     el.carName.textContent = c.name;
     el.carSub.textContent = c.sub;
-    el.carBox.innerHTML = carSVG(c);
+    el.stage.classList.remove('has-photo');
+    el.carBox.innerHTML = '';
+    if (c.photo) {
+      const img = new Image();
+      img.id = 'car';
+      img.className = 'photo';
+      img.alt = c.name;
+      img.draggable = false;
+      img.onload = () => { if (car() === c) el.stage.classList.add('has-photo'); };
+      img.onerror = () => {
+        if (car() !== c) return;
+        el.stage.classList.remove('has-photo');
+        el.carBox.innerHTML = carSVG(c);   // фото не загрузилось — рисуем машину
+      };
+      img.src = c.photo;
+      el.carBox.appendChild(img);
+    } else {
+      el.carBox.innerHTML = carSVG(c);
+    }
   }
 
   function renderHud() {
