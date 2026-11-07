@@ -23,15 +23,17 @@
   const CARS = [
     // photo — необязательное фото машины (папка images/). Если файла нет, рисуется запасная машина.
     { name: 'ВАЗ-2107',        sub: 'Классика. С неё всё начиналось',   th: 0,           mult: 1,   shape: 'classic', color: '#2236c9', accent: null, glass: '#141a26', bumper: '#14161b', wheels: 'steel', photo: 'images/vaz2107.webp' },
-    { name: 'ВАЗ-2110',        sub: 'Та самая «десятка»',               th: 3e3,         mult: 2,   shape: 'sedan',   color: '#8ea0b3', accent: '#5c6b7a' },
-    { name: 'Lada Priora',     sub: 'Тот же двигатель, новый уровень',  th: 2e4,         mult: 4,   shape: 'sedan',   color: '#b8bcc4', accent: '#3a86ff' },
-    { name: 'Lada Vesta',      sub: 'Современно и по-русски',           th: 1.2e5,       mult: 7,   shape: 'sedan',   color: '#2a9d8f', accent: '#e9c46a' },
-    { name: 'Toyota Camry',    sub: 'Бизнес-класс. Ты уже в деле',      th: 7e5,         mult: 12,  shape: 'sedan',   color: '#f1f1f1', accent: '#2b2d42' },
-    { name: 'BMW M5',          sub: 'Седан, который ведёт себя как спорткар', th: 4e6,    mult: 20,  shape: 'sedan',   color: '#1d3557', accent: '#e63946' },
-    { name: 'Mercedes G-Class',sub: 'Король бездорожья и парковок',     th: 2.5e7,       mult: 35,  shape: 'suv',     color: '#2b2b2b', accent: '#ffb703' },
-    { name: 'Porsche 911',     sub: 'Легенда. Заднемоторная классика',  th: 1.5e8,       mult: 60,  shape: 'sport',   color: '#e63946', accent: '#ffffff' },
-    { name: 'Lamborghini',     sub: 'Мечта со стен в детской',          th: 1e9,         mult: 100, shape: 'sport',   color: '#ffd60a', accent: '#111111' },
-    { name: 'Bugatti',         sub: 'Вершина. Дальше только космос',    th: 8e9,         mult: 200, shape: 'sport',   color: '#1e5fa8', accent: '#e5e5e5' },
+    { name: 'Lada Priora',         sub: 'Тот же двигатель, новый уровень',       th: 3e3,    mult: 2,   shape: 'sedan',   color: '#b8bcc4', accent: '#3a86ff' },
+    { name: 'Lada Vesta',          sub: 'Современно и по-русски',                th: 2.5e4,  mult: 4,   shape: 'sedan',   color: '#2a9d8f', accent: '#e9c46a' },
+    { name: 'Toyota Camry',        sub: 'Бизнес-класс. Ты уже в деле',           th: 1.5e5,  mult: 7,   shape: 'sedan',   color: '#f1f1f1', accent: '#2b2d42' },
+    { name: 'Mercedes-AMG C63',    sub: 'Маленький седан с большим V8',          th: 9e5,    mult: 12,  shape: 'sedan',   color: '#6b7280', accent: '#e63946' },
+    { name: 'BMW M5 F10',          sub: 'Первый M5 с турбонаддувом',             th: 5e6,    mult: 20,  shape: 'sedan',   color: '#1d3557', accent: '#e63946' },
+    { name: 'BMW M5 F90',          sub: 'Полный привод и 600+ л.с.',             th: 3e7,    mult: 35,  shape: 'sedan',   color: '#5c6b7a', accent: '#3a86ff' },
+    { name: 'BMW M5 G90',          sub: 'Гибрид. Больше 700 л.с.',               th: 1.8e8,  mult: 60,  shape: 'sedan',   color: '#2b2d42', accent: '#e63946' },
+    { name: 'Mercedes G63',        sub: 'Король бездорожья и парковок',          th: 1.1e9,  mult: 100, shape: 'suv',     color: '#2b2b2b', accent: '#ffb703' },
+    { name: 'Porsche 911 Turbo S', sub: 'Быстрее, чем кажется',                  th: 7e9,    mult: 170, shape: 'sport',   color: '#adb5bd', accent: '#e63946' },
+    { name: 'Ferrari 812 Superfast', sub: 'Атмосферный V12 на 800 л.с.',         th: 4.5e10, mult: 280, shape: 'sport',   color: '#c1121f', accent: '#ffffff' },
+    { name: 'Porsche 911 GT3 RS',  sub: 'Трековое оружие, разрешённое на дороге', th: 3e11,  mult: 500, shape: 'sport',   color: '#f8f9fa', accent: '#2a9d8f' },
   ];
 
   // type: tap (+к тапу), sec (+₽/сек), energy (+макс. энергия), regen (+энергии/сек)
@@ -82,6 +84,7 @@
   function merge(data) {
     const s = Object.assign(defaults(), data || {});
     s.levels = Object.assign({}, (data && data.levels) || {});
+    s.carIdx = carIdxFor(s.lifetime || 0);   // список машин мог измениться — берём машину по заработку
     return s;
   }
   function saveLocal() {
